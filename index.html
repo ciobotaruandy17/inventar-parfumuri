@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inventar Parfumuri</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <span class="mark">Registru de atelier</span>
+      <h1>Inventar Parfumuri</h1>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <button type="button" id="openNecesarBtn" class="btn-primary" style="white-space:nowrap;">📋 Necesar</button>
+      <span class="count-pill" id="totalCount">0 flacoane</span>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button type="button" class="tab-btn active" data-tab="tab-palete">Afară</button>
+    <button type="button" class="tab-btn" data-tab="tab-rafturi">Rafturi</button>
+    <button type="button" class="tab-btn" data-tab="tab-istoric">Istoric</button>
+  </div>
+
+  <div id="tab-palete" class="tab-view active">
+
+    <div class="search-block">
+      <div class="search-box">
+        <input type="text" id="search" inputmode="numeric" placeholder="Caută un număr de parfum…" autocomplete="off">
+      </div>
+      <div class="search-results" id="searchResults"></div>
+    </div>
+
+    <div class="section-title">Adaugă palet nou</div>
+    <form class="add-palet-form" id="addPaletForm">
+      <input type="text" id="newPaletId" placeholder="ex: P48" autocomplete="off" enterkeyhint="done">
+      <button type="button" id="addPaletBtn" class="btn-primary">Adaugă palet</button>
+    </form>
+
+    <div class="section-title">Import rapid (mai mulți paleți deodată)</div>
+    <div id="importBlock" style="background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:14px;box-shadow:var(--shadow);">
+      <p style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:12px;color:#a08a63;margin:0 0 10px;">
+        Lipește text de forma: <code>P1. 38 47 47 8 ...</code> (o linie pe palet) — <strong>sau</strong> JSON exact: <code>{"P1": [38,47,47,8]}</code>. Suprascrie doar paleții menționați; restul rămân neatinși.
+      </p>
+      <textarea id="importText" rows="5" placeholder="P1. 38 47 47 8 8&#10;P2. 70 70 161 31" style="width:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--cream);resize:vertical;"></textarea>
+      <input type="file" id="importFileInput" accept=".json,.txt" style="display:none">
+      <div style="display:flex;justify-content:space-between;margin-top:10px;flex-wrap:wrap;gap:8px;">
+        <div style="display:flex;gap:8px;">
+          <button type="button" id="exportBtn" class="btn-ghost">Exportă lista curentă</button>
+          <button type="button" id="importFileBtn" class="btn-ghost">📂 Încarcă fișier</button>
+        </div>
+        <button type="button" id="importBtn" class="btn-primary">Importă lista</button>
+      </div>
+    </div>
+
+    <div class="section-title">Paleți</div>
+    <div class="palet-list" id="paletList"></div>
+
+  </div>
+
+  <div id="tab-rafturi" class="tab-view">
+
+    <div class="search-block">
+      <div class="search-box">
+        <input type="text" id="raftSearch" inputmode="numeric" placeholder="Caută un parfum pe rafturi…" autocomplete="off">
+      </div>
+      <div class="search-results" id="raftSearchResults"></div>
+    </div>
+
+    <div class="section-title">Rafturi</div>
+    <div class="palet-list" id="raftList"></div>
+  </div>
+
+  <div id="tab-istoric" class="tab-view">
+    <div class="section-title">Istoric (adăugări și ștergeri)</div>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+      <button type="button" id="clearIstoricBtn" class="btn-ghost">Golește istoricul</button>
+    </div>
+    <div id="istoricList"></div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div id="necesarOverlay" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2>Necesar</h2>
+      <button type="button" id="closeNecesarBtn" class="btn-ghost" aria-label="Închide">✕</button>
+    </div>
+    <p style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;color:#a08a63;margin:0 0 12px;">
+      Parfumurile de care angajații au nevoie acum, pentru împachetat.
+    </p>
+    <div id="necesarChips" class="chips"></div>
+    <form id="necesarForm" style="display:flex;gap:8px;margin-top:14px;">
+      <input type="text" id="necesarInput" inputmode="numeric" placeholder="Nr. parfum necesar" autocomplete="off" enterkeyhint="done">
+      <button type="button" id="necesarAddBtn" class="btn-primary">Adaugă</button>
+    </form>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
