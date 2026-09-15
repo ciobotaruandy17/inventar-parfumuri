@@ -1,8 +1,8 @@
 (function(){
- 
+  
   const FIREBASE_URL_RAW = "https://parfumuri-4543a-default-rtdb.firebaseio.com/";
   const FIREBASE_URL = FIREBASE_URL_RAW.replace(/\/+$/, '');
-  
+ 
   const FIREBASE_API_KEY = "AIzaSyD0Q-I1z4bLEPJNG7rTbQ-Y41nkPXInf-g";
   let authToken = null;   
   let userEmail = null;   
@@ -234,13 +234,18 @@
   function toggleMarker(v){ return isBlueMarked(v) ? stripMarker(v) : BLUE_MARKER + String(v); }
 
   function totalPerfumes(){
-    return Object.values(palete).reduce((sum, arr) => sum + normalizeNums(arr).length, 0);
+    const paleteCount = Object.values(palete).reduce((sum, arr) => sum + normalizeNums(arr).length, 0);
+    const rafturiCount = Object.values(rafturi).reduce((sum, arr) => sum + normalizeNums(arr).length, 0);
+    return paleteCount + rafturiCount;
+  }
+
+  function updateTotalCount(){
+    const count = totalPerfumes();
+    totalCountEl.textContent = count + (count === 1 ? ' flacon' : ' flacoane');
   }
 
   function render(){
-    // total count
-    const count = totalPerfumes();
-    totalCountEl.textContent = count + (count === 1 ? ' flacon' : ' flacoane');
+    updateTotalCount();
 
     // palet list
     const ids = Object.keys(palete).sort(naturalPaletSort);
@@ -263,6 +268,7 @@
     raftListEl.innerHTML = RAFT_NAMES.map(name => renderRaftCard(name)).join('');
     attachRaftEvents();
     renderRaftSearch();
+    updateTotalCount();
   }
 
   function renderRaftSearch(){
@@ -728,8 +734,7 @@
     addPalet();
   });
 
-  // Fallback: some mobile keyboards don't fire "submit" on the Enter/OK key
-  // inside this embedded view, so force it manually.
+  
   newPaletIdEl.addEventListener('keydown', (e) => {
     if(e.key === 'Enter'){
       e.preventDefault();
@@ -895,7 +900,7 @@
     if(e.key === 'Enter'){ e.preventDefault(); addNecesar(); }
   });
 
- // ===== Autentificare =====
+  // ===== Autentificare =====
   function updateAuthUI(){
     if(authToken){
       loginForm.style.display = 'none';
@@ -963,11 +968,97 @@
   loadIstoric();
   loadNecesar();
 
-  
+  // ===== Scanează foaie (recunoaștere automată prin Claude Vision) =====
+  const openScanBtn = document.getElementById('openScanBtn');
+  const closeScanBtn = document.getElementById('closeScanBtn');
+  const scanOverlay = document.getElementById('scanOverlay');
+  const scanFileInput = document.getElementById('scanFileInput');
+  const scanStatus = document.getElementById('scanStatus');
+  const scanResultBlock = document.getElementById('scanResultBlock');
+  const scanResultText = document.getElementById('scanResultText');
+  const scanPaletIdEl = document.getElementById('scanPaletId');
+  const scanConfirmBtn = document.getElementById('scanConfirmBtn');
+
+  function resetScanModal(){
+    scanStatus.textContent = '';
+    scanResultBlock.style.display = 'none';
+    scanResultText.value = '';
+    scanPaletIdEl.value = '';
+    scanFileInput.value = '';
+  }
+
+  openScanBtn.addEventListener('click', () => {
+    if(!requireLogin()) return; // scanarea costă bani per cerere — doar utilizatori logați pot porni una
+    resetScanModal();
+    scanOverlay.classList.add('open');
+  });
+  closeScanBtn.addEventListener('click', () => scanOverlay.classList.remove('open'));
+  scanOverlay.addEventListener('click', (e) => {
+    if(e.target === scanOverlay) scanOverlay.classList.remove('open');
+  });
+
+  scanFileInput.addEventListener('change', () => {
+    const file = scanFileInput.files[0];
+    if(!file) return;
+
+    scanStatus.textContent = 'Se procesează imaginea… (poate dura câteva secunde)';
+    scanResultBlock.style.display = 'none';
+
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64 = String(reader.result).split(',')[1] || '';
+      try{
+        const res = await fetch('/.netlify/functions/scan-image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: base64, mediaType: file.type || 'image/jpeg' })
+        });
+        const data = await res.json();
+        if(!res.ok || data.error){
+          scanStatus.textContent = 'Eroare: ' + (data.error || 'necunoscută');
+          return;
+        }
+        if(!data.numere || data.numere.length === 0){
+          scanStatus.textContent = 'Nu am recunoscut niciun număr în această imagine — încearcă o poză mai clară.';
+          return;
+        }
+        scanStatus.textContent = `${data.numere.length} numere recunoscute — verifică și corectează dacă e nevoie:`;
+        scanResultText.value = data.numere.join(' ');
+        scanResultBlock.style.display = 'block';
+      } catch(e){
+        scanStatus.textContent = 'Eroare de conexiune — încearcă din nou.';
+      }
+    };
+    reader.onerror = () => { scanStatus.textContent = 'Nu am putut citi imaginea.'; };
+    reader.readAsDataURL(file);
+  });
+
+  scanConfirmBtn.addEventListener('click', async () => {
+    if(!requireLogin()) return;
+    let id = scanPaletIdEl.value.trim();
+    if(!id){ showToast('Scrie pe ce palet le adaugi'); return; }
+    if(!isNaN(id)) id = 'P' + id;
+    const nums = (scanResultText.value.match(/\d+/g) || []);
+    if(nums.length === 0){ showToast('Nu sunt numere de adăugat'); return; }
+
+    if(!palete[id]) palete[id] = [];
+    palete[id].push(...nums);
+    openSet.add(id);
+    render();
+    await saveData();
+
+    scanOverlay.classList.remove('open');
+    resetScanModal();
+    const mesaj = `${nums.length} parfumuri scanate și adăugate pe ${id}`;
+    showToast(mesaj);
+    logIstoric('adaugare', mesaj);
+  });
+
+  // Înregistrează service worker-ul, ca aplicația să poată fi instalată pe telefon
   if('serviceWorker' in navigator){
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/sw.js').catch(() => {
-      
+        // dacă înregistrarea eșuează, aplicația funcționează normal, doar fără instalare/offline
       });
     });
   }

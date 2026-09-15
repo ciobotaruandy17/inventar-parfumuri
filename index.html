@@ -71,6 +71,7 @@
         <div style="display:flex;gap:8px;">
           <button type="button" id="exportBtn" class="btn-ghost">Exportă lista curentă</button>
           <button type="button" id="importFileBtn" class="btn-ghost">📂 Încarcă fișier</button>
+          <button type="button" id="openScanBtn" class="btn-ghost">📷 Scanează foaie</button>
         </div>
         <button type="button" id="importBtn" class="btn-primary">Importă lista</button>
       </div>
@@ -120,6 +121,29 @@
       <input type="text" id="necesarInput" inputmode="numeric" placeholder="Nr. parfum necesar" autocomplete="off" enterkeyhint="done">
       <button type="button" id="necesarAddBtn" class="btn-primary">Adaugă</button>
     </form>
+  </div>
+</div>
+
+<div id="scanOverlay" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2>Scanează foaie</h2>
+      <button type="button" id="closeScanBtn" class="btn-ghost" aria-label="Închide">✕</button>
+    </div>
+    <p style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;color:#a08a63;margin:0 0 12px;">
+      Fă o poză (sau alege una) cu foaia scrisă de mână — recunoaștem automat numerele, tu confirmi înainte să se adauge.
+    </p>
+    <input type="file" id="scanFileInput" accept="image/*" capture="environment" style="width:100%;">
+    <p id="scanStatus" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;color:var(--amber-800);margin:12px 0 0;"></p>
+    <div id="scanResultBlock" style="display:none;margin-top:12px;">
+      <label style="display:block;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;color:var(--amber-800);margin-bottom:6px;">Numere recunoscute (verifică și corectează dacă e nevoie):</label>
+      <textarea id="scanResultText" rows="3" style="width:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--cream);resize:vertical;"></textarea>
+      <label style="display:block;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;color:var(--amber-800);margin:10px 0 6px;">Pe ce palet le adaugi?</label>
+      <input type="text" id="scanPaletId" placeholder="ex: P12" autocomplete="off" style="width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 12px;font-size:15px;background:var(--cream);">
+      <div style="display:flex;justify-content:flex-end;margin-top:12px;">
+        <button type="button" id="scanConfirmBtn" class="btn-primary">Adaugă în palet</button>
+      </div>
+    </div>
   </div>
 </div>
 
