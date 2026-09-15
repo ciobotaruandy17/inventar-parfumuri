@@ -1,22 +1,14 @@
 (function(){
-  // =====================================================================
-  // CONFIGURARE BAZĂ DE DATE — editează linia de mai jos cu URL-ul tău
-  // Firebase Realtime Database (ex: "https://numele-tau-default-rtdb.firebaseio.com")
-  // Lasă-l gol ("") ca aplicația să funcționeze doar local, în acest browser.
-  // =====================================================================
+ 
   const FIREBASE_URL_RAW = "https://parfumuri-4543a-default-rtdb.firebaseio.com/";
   const FIREBASE_URL = FIREBASE_URL_RAW.replace(/\/+$/, '');
-  // =====================================================================
-
-  // =====================================================================
-  // AUTENTIFICARE — cheia ta Firebase Web API (nu e secretă, poate fi publică)
-  // =====================================================================
+  
   const FIREBASE_API_KEY = "AIzaSyD0Q-I1z4bLEPJNG7rTbQ-Y41nkPXInf-g";
-  let authToken = null;   // token-ul de sesiune, când ești logat (null = neautentificat)
-  let userEmail = null;   // emailul contului logat, pentru afișare
-  // =====================================================================
+  let authToken = null;   
+  let userEmail = null;   
+  
 
-  const STORAGE_KEY = 'palettes'; // NU redenumi — e "adresa" din baza de date unde stau deja datele tale reale
+  const STORAGE_KEY = 'palettes'; 
   let palete = {};
   let storageVersion = null;
   let openSet = new Set();
@@ -77,8 +69,7 @@
   }
 
   async function loadKey(key){
-    // Prioritate: dacă rulează în interiorul Claude (window.storage există),
-    // folosește stocarea Claude — Firebase e blocat oricum din acel mediu.
+    
     if(window.storage){
       try{
         const result = await window.storage.get(key, true);
@@ -87,7 +78,7 @@
         return {};
       }
     }
-    // În afara Claude: folosește baza de date proprie, dacă e configurată.
+    
     if(FIREBASE_URL){
       try{
         const res = await fetch(`${FIREBASE_URL}/${key}.json`);
@@ -783,7 +774,7 @@
     let paletCount = 0;
     let numCount = 0;
 
-    // 1) Încearcă mai întâi JSON — format fără ambiguitate: {"P1":[38,47,...], "P2":[...]}
+    
     let parsedAsJson = false;
     try{
       const data = JSON.parse(text);
@@ -802,10 +793,10 @@
         });
       }
     } catch(e){
-      // nu e JSON valid — continuă cu formatul text simplu
+      
     }
 
-    // 2) Dacă nu era JSON, folosește formatul text: "P1. 38 47 47 8 ..."
+    
     if(!parsedAsJson){
       const lines = text.split('\n');
       lines.forEach(line => {
@@ -904,7 +895,7 @@
     if(e.key === 'Enter'){ e.preventDefault(); addNecesar(); }
   });
 
-  // ===== Autentificare =====
+ // ===== Autentificare =====
   function updateAuthUI(){
     if(authToken){
       loginForm.style.display = 'none';
@@ -971,4 +962,13 @@
   loadRafturi();
   loadIstoric();
   loadNecesar();
+
+  
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(() => {
+      
+      });
+    });
+  }
 })();
